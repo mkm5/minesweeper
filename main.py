@@ -57,7 +57,6 @@ class GameManager:
 
     def newGame(self) -> None:
         self._minesweeper = Minesweeper(self._difficulty)
-        print(self._minesweeper) # NOTE: for testing purpose only
 
     def setDifficulty(self, difficulty: Difficulties) -> None:
         self._difficulty = difficulty
