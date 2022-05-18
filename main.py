@@ -1,10 +1,10 @@
 import platform
 from functools import partial
-from tkinter import RAISED, DISABLED, SUNKEN
+from tkinter import LEFT, RAISED, DISABLED, RIGHT, SUNKEN, TOP, X, YES, Entry, Label, Toplevel
 from tkinter import Button, Frame, Menu, Tk, messagebox
 from typing import Callable, NoReturn
 
-from difficulty import *
+from difficulty import Difficulty, EASY, MEDIUM, HARD
 from logic import Minesweeper, State
 
 LEFT_CLICK = '<Button-1>'
@@ -62,6 +62,38 @@ class GameManager:
         self._difficulty = difficulty
 
 
+class CustomDifficultyDialog(Toplevel):
+    def __init__(self, change_difficulty: Callable[[Difficulty], None], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._change_difficulty = change_difficulty
+
+        self.title('Custom Difficulty Dialog')
+        self.resizable(False, False)
+
+        self._entries = {'rows': None, 'cols': None, 'bombs': None}
+        for entry in self._entries.keys():
+            frame = Frame(self)
+            Label(frame, text=f'{entry.title()}:', width=10, anchor='w', justify=LEFT).pack(side=LEFT)
+            self._entries[entry] = Entry[frame]
+            self._entries[entry].pack(side=RIGHT, expand=YES, fill=X)
+            frame.pack(side=TOP, expand=YES, fill=X)
+
+        confirm_btn = Button(self, text='Confirm', command=self._onConfirm)
+        confirm_btn.pack(side=RIGHT)
+
+    def _onConfirm(self) -> None:
+        try:
+            rows = int(self._rows.get())
+            cols = int(self._cols.get())
+            bombs = int(self._bombs.get())
+        except ValueError: messagebox.showerror('Invalid type!', 'At least one of the entries contains invalid data type.'); return
+        if rows == 0 or cols == 0 or bombs == 0: messagebox.showerror('Invalid value!', 'At least one of the entries conains invalid value.'); return
+        if rows * cols <= bombs: messagebox.showerror('Invalid value!', 'Number of bombs is too high for provided grid size.'); return
+
+        self.destroy()
+        self._change_difficulty(Difficulty('custom', rows, cols, bombs))
+
+
 class App:
     def __init__(self) -> None:
         self._root = Tk()
@@ -82,6 +114,10 @@ class App:
                 label=difficulty.name.title(),
                 command=partial(self._setDifficulty, difficulty)
             )
+        self._difficul_menu.add_command(
+            label='Custom difficulty',
+            command=partial(CustomDifficultyDialog, self._setDifficulty)
+        )
 
         self._menu.add_cascade(label='Difficulty', menu=self._difficul_menu)
 
@@ -122,6 +158,6 @@ class App:
         self._newGame()
         self._root.mainloop()
 
+
 if __name__ == '__main__':
     App().run()
-
