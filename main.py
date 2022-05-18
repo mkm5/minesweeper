@@ -4,7 +4,7 @@ from tkinter import RAISED, DISABLED, SUNKEN
 from tkinter import Button, Frame, Menu, Tk, messagebox
 from typing import Callable, NoReturn
 
-from difficulty import Difficulties
+from difficulty import *
 from logic import Minesweeper, State
 
 LEFT_CLICK = '<Button-1>'
@@ -19,7 +19,7 @@ BUTTON_APPEARANCES = {
 
 class GameManager:
     def __init__(self, on_win: Callable[[], None], on_lose: Callable[[], None]):
-        self._difficulty: Difficulties = Difficulties.EASY
+        self._difficulty: Difficulty = EASY
         self._minesweeper: Minesweeper = None
         self._onWin: Callable[[], None] = on_win
         self._onLose: Callable[[], None] = on_lose
@@ -58,7 +58,7 @@ class GameManager:
     def newGame(self) -> None:
         self._minesweeper = Minesweeper(self._difficulty)
 
-    def setDifficulty(self, difficulty: Difficulties) -> None:
+    def setDifficulty(self, difficulty: Difficulty) -> None:
         self._difficulty = difficulty
 
 
@@ -77,7 +77,7 @@ class App:
         self._menu.add_command(label='New Game', command=self._newGame)
 
         self._difficul_menu = Menu(self._menu, tearoff=False)
-        for difficulty in Difficulties.getAllDifficulties():
+        for difficulty in (EASY, MEDIUM, HARD):
             self._difficul_menu.add_command(
                 label=difficulty.name.title(),
                 command=partial(self._setDifficulty, difficulty)
@@ -106,7 +106,7 @@ class App:
         self._game_manager.newGame()
         self._setup()
 
-    def _setDifficulty(self, difficulty: Difficulties) -> None:
+    def _setDifficulty(self, difficulty: Difficulty) -> None:
         self._game_manager.setDifficulty(difficulty)
         self._newGame()
 
