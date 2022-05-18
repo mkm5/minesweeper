@@ -6,7 +6,7 @@ from random import sample
 
 from typing import Generator, List, Set, Tuple
 
-from difficulty import Difficulties
+from difficulty import Difficulty
 
 @dataclass
 class Tile:
@@ -23,7 +23,7 @@ class State(Enum):
     LOSE = auto()
 
 class Minesweeper:
-    def __init__(self, difficulty: Difficulties) -> None:
+    def __init__(self, difficulty: Difficulty) -> None:
         self._state: State = State.ONGOING
         self._difficulty = difficulty
         self._bombs: Set[Tuple[int, int]] = self._generateBombs()
@@ -38,7 +38,7 @@ class Minesweeper:
     def bombs(self) -> Set[Tuple[int, int]]:
         return self._bombs
 
-    # NOTE: only for test purpose
+    # NOTE: only for testing purpose
     def __str__(self) -> str:
         out = f'Minesweeper {self._difficulty.name}\n'
         out += f'rows={self._difficulty.rows} cols={self._difficulty.cols} bombs={self._difficulty.bombs}\n'
@@ -135,6 +135,3 @@ class Minesweeper:
                 changed_tiles.append(ntile)
 
         return changed_tiles
-
-if __name__ == '__main__':
-    print(Minesweeper(Difficulties.EASY))
