@@ -1,3 +1,4 @@
+import time
 import platform
 from functools import partial
 from tkinter import (
@@ -79,6 +80,7 @@ class App:
     def __init__(self) -> None:
         self._difficulty: Difficulty = EASY
         self._minesweeper: Minesweeper = None
+        self._timer: float = None
 
         self._root = Tk()
         self._root.title('Minesweeper')
@@ -131,6 +133,7 @@ class App:
     def _newGame(self):
         self._cleanGameFrame()
         self._minesweeper = Minesweeper(self._difficulty)
+        self._timer = None
         self._setup()
 
     def _setDifficulty(self, difficulty: Difficulty) -> None:
@@ -142,7 +145,8 @@ class App:
             self._newGame()
 
     def _onWin(self) -> None:
-        if messagebox.showinfo('', 'You won!'):
+        time_spent = time.perf_counter() - self._timer
+        if messagebox.showinfo('', f'You won!\nIt took you: {round(time_spent, 2)} seconds.'):
             self._newGame()
 
     def _revealBombs(self):
@@ -151,6 +155,9 @@ class App:
             bomb_btn.configure(**APPEARANCES['image'], **APPEARANCES['bomb'])
 
     def _reveal(self, row: int, col: int, _: Event) -> None:
+        if not self._timer:
+            self._timer = time.perf_counter()
+
         changed_tiles = self._minesweeper.reveal(row, col)
         for tile in changed_tiles:
             btn = self._game_frame.grid_slaves(row=tile.row, column=tile.col)[0]
