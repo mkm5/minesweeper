@@ -8,6 +8,7 @@ from typing import Generator, List, Set, Tuple
 
 from difficulty import Difficulty
 
+
 @dataclass
 class Tile:
     row: int
@@ -17,10 +18,12 @@ class Tile:
     isFlagged: bool = False
     isRevealed: bool = False
 
+
 class State(Enum):
     ONGOING = auto()
     WIN = auto()
     LOSE = auto()
+
 
 class Minesweeper:
     def __init__(self, difficulty: Difficulty) -> None:
@@ -45,12 +48,13 @@ class Minesweeper:
         out += str(self._bombs) + '\n'
         for row in self._grid:
             for tile in row:
-                if tile.isBomb and not tile.isFlagged: out += 'B '
-                elif not tile.isBomb and tile.isFlagged: out += 'F '
-                elif tile.isBomb and tile.isFlagged: out += 'X '
+                if tile.isBomb and not tile.isFlagged: out += 'B'
+                elif not tile.isBomb and tile.isFlagged: out += 'F'
+                elif tile.isBomb and tile.isFlagged: out += 'X'
                 else:
-                    if tile.bombsInNeighbor > 0: out += f'{tile.bombsInNeighbor} '
-                    else: out += '_ '
+                    if tile.bombsInNeighbor > 0: out += f'{tile.bombsInNeighbor}'
+                    else: out += '_'
+                out += ' '
             out += '\n'
         return out
 
@@ -97,9 +101,10 @@ class Minesweeper:
         self._flags += 1 if tile.isFlagged else -1
         if tile.isFlagged:
             if (
-                self._flags == self._difficulty.bombs \
+                self._flags == self._difficulty.bombs
                 and self._checkIfAllBombsAreFlagged()
-            ): self._state = State.WIN
+            ):
+                self._state = State.WIN
         return tile.isFlagged
 
     def reveal(self, row: int, col: int) -> List[Tile]:

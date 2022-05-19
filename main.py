@@ -1,6 +1,6 @@
 import platform
 from functools import partial
-from tkinter import LEFT, RAISED, DISABLED, RIGHT, SUNKEN, TOP, X, YES, Entry, Event, Label, Toplevel
+from tkinter import Entry, Event, Label, Toplevel
 from tkinter import Button, Frame, Menu, Tk, messagebox
 from typing import Callable, NoReturn
 
@@ -11,10 +11,10 @@ LEFT_CLICK = '<Button-1>'
 RIGHT_CLICK = '<Button-3>' if not platform.system() == 'Darwin' else '<Button-2>'
 
 BUTTON_APPEARANCES = {
-    'default': { 'text': ' ', 'bg': 'SystemButtonFace', 'fg': 'SystemButtonText', 'relief': RAISED },
-    'revealed': { 'disabledforeground': 'SystemButtonText', 'state': DISABLED, 'relief': SUNKEN },
+    'default': { 'text': ' ', 'bg': 'SystemButtonFace', 'fg': 'SystemButtonText', 'relief': 'raised' },
+    'revealed': { 'disabledforeground': 'SystemButtonText', 'state': 'disabled', 'relief': 'sunken' },
     'flagged': { 'text': 'F', 'fg': '#9B59B6' },
-    'bomb': { 'text': 'B', 'disabledforeground': '#E74C3C', 'state': DISABLED, 'relief': SUNKEN }
+    'bomb': { 'text': 'B', 'disabledforeground': '#E74C3C', 'state': 'disabled', 'relief': 'sunken' }
 }
 
 
@@ -29,23 +29,37 @@ class CustomDifficultyDialog(Toplevel):
         self._entries = {'rows': None, 'cols': None, 'bombs': None}
         for entry in self._entries.keys():
             frame = Frame(self)
-            Label(frame, text=f'{entry.title()}:', width=10, anchor='w', justify=LEFT).pack(side=LEFT)
-            self._entries[entry] = Entry[frame]
-            self._entries[entry].pack(side=RIGHT, expand=YES, fill=X)
-            frame.pack(side=TOP, expand=YES, fill=X)
+            Label(frame, text=f'{entry.title()}:', width=10, anchor='w', justify='left').pack(side='left')
+            self._entries[entry] = Entry(frame)
+            self._entries[entry].pack(side='right', expand=1, fill='x')
+            frame.pack(side='top', expand=1, fill='x')
 
         confirm_btn = Button(self, text='Confirm', command=self._onConfirm)
-        confirm_btn.pack(side=RIGHT)
+        confirm_btn.pack(side='right')
 
     def _onConfirm(self) -> None:
         try:
-            rows = int(self._rows.get())
-            cols = int(self._cols.get())
-            bombs = int(self._bombs.get())
+            rows = int(self._entries['rows'].get())
+            cols = int(self._entries['cols'].get())
+            bombs = int(self._entries['bombs'].get())
         except ValueError:
-            messagebox.showerror('Invalid type!', 'At least one of the entries contains invalid data type.'); return
-        if rows == 0 or cols == 0 or bombs == 0: messagebox.showerror('Invalid value!', 'At least one of the entries conains invalid value.'); return
-        if rows * cols <= bombs: messagebox.showerror('Invalid value!', 'Number of bombs is too high for provided grid size.'); return
+            messagebox.showerror(
+                'Invalid type!',
+                'At least one of the entries contains invalid data type.'
+            )
+            return
+        if rows == 0 or cols == 0 or bombs == 0:
+            messagebox.showerror(
+                'Invalid value!',
+                'At least one of the entries conains invalid value.'
+            )
+            return
+        if rows * cols <= bombs:
+            messagebox.showerror(
+                'Invalid value!',
+                'Number of bombs is too high for provided grid size.'
+            )
+            return
 
         self.destroy()
         self._change_difficulty(Difficulty('custom', rows, cols, bombs))
@@ -70,11 +84,11 @@ class App:
         for difficulty in (EASY, MEDIUM, HARD):
             self._difficul_menu.add_command(
                 label=difficulty.name.title(),
-                command=partial(self._setDifficulty, difficulty)
+                command=partial(self._setDifficulty, difficulty),
             )
         self._difficul_menu.add_command(
             label='Custom difficulty',
-            command=partial(CustomDifficultyDialog, self._setDifficulty)
+            command=partial(CustomDifficultyDialog, self._setDifficulty),
         )
 
         self._menu.add_cascade(label='Difficulty', menu=self._difficul_menu)
@@ -138,7 +152,7 @@ class App:
             )
             if self._minesweeper.state == State.WIN:
                 self._onWin()
-        except ValueError: # Will occure if already revealed tile is getting flagged
+        except ValueError:  # Will occure if already revealed tile is getting flagged
             pass
 
     def run(self) -> NoReturn:
