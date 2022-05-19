@@ -1,4 +1,4 @@
 # Minesweeper
 Overengineered implementation of minesweeper.
 
-![](res/minesweeper-medium-difficulty-screenshot.png)
+![minesweeper-medium-example-game](res/minesweeper-medium-example-game.png) ![minesweeper-medium-example-game](res/minesweeper-medium-example-lose.png)
