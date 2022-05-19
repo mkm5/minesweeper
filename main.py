@@ -1,7 +1,7 @@
 import platform
 from functools import partial
 from tkinter import (
-    BUTT, Entry, Event, Label, PhotoImage, Toplevel,
+    Entry, Event, Label, PhotoImage, Toplevel,
     Button, Frame, Menu, Tk, messagebox
 )
 from tkinter.font import Font, nametofont
