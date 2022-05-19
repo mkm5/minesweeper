@@ -84,6 +84,9 @@ class App:
         self._root.title('Minesweeper')
         self._root.resizable(False, False)
 
+        # NOTE: It appears that wile font other than Consolas is in use, the size-changing
+        #       effect appears after replacing text with image and vice-versa. Allegedly
+        #       there is no easy way to remove this.
         APPEARANCES['flagged']['image'] = PhotoImage(name='flag', file='./img/flag.png')
         APPEARANCES['bomb']['image'] = PhotoImage(name='bomb', file='./img/bomb.png')
         APPEARANCES['text']['font'] = nametofont('TkFixedFont')
