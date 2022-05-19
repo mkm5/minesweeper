@@ -1,7 +1,10 @@
 import platform
 from functools import partial
-from tkinter import Entry, Event, Label, Toplevel
-from tkinter import Button, Frame, Menu, Tk, messagebox
+from tkinter import (
+    Entry, Event, Label, PhotoImage, Toplevel,
+    Button, Frame, Menu, Tk, messagebox
+)
+from tkinter.font import Font, nametofont
 from typing import Callable, NoReturn
 
 from difficulty import Difficulty, EASY, MEDIUM, HARD
@@ -10,13 +13,20 @@ from logic import Minesweeper, State
 LEFT_CLICK = '<Button-1>'
 RIGHT_CLICK = '<Button-3>' if not platform.system() == 'Darwin' else '<Button-2>'
 
-BUTTON_APPEARANCES = {
-    'default': { 'text': ' ', 'bg': 'SystemButtonFace', 'fg': 'SystemButtonText', 'relief': 'raised' },
-    'revealed': { 'disabledforeground': 'SystemButtonText', 'state': 'disabled', 'relief': 'sunken' },
-    'flagged': { 'text': 'F', 'fg': '#9B59B6' },
-    'bomb': { 'text': 'B', 'disabledforeground': '#E74C3C', 'state': 'disabled', 'relief': 'sunken' }
+APPEARANCES = {
+    'text': {
+        'image': '',
+        'font': None,
+        'compound': 'center',
+        'bg': 'SystemButtonFace', 'fg': 'SystemButtonText',
+        'height': 1, 'width': 2, 'borderwidth': 1, 'padx': 2
+    },
+    'image': { 'text': '', 'height': 20, 'width': 20, 'padx': 0 },
+    'default': { 'text': ' ', 'relief': 'raised' },
+    'reveald': { 'state': 'disabled', 'relief': 'sunken' },
+    'flagged': { 'image': None },
+    'bomb': { 'image': None, 'bg': '#E74C3C' }
 }
-
 
 class CustomDifficultyDialog(Toplevel):
     def __init__(self, change_difficulty: Callable[[Difficulty], None], *args, **kwargs):
@@ -74,6 +84,15 @@ class App:
         self._root.title('Minesweeper')
         self._root.resizable(False, False)
 
+        # NOTE: It appears that wile font other than Consolas is in use, the size-changing
+        #       effect appears after replacing text with image and vice-versa. Allegedly
+        #       there is no easy way to remove this.
+        APPEARANCES['flagged']['image'] = PhotoImage(name='flag', file='./img/flag.png')
+        APPEARANCES['bomb']['image'] = PhotoImage(name='bomb', file='./img/bomb.png')
+        APPEARANCES['text']['font'] = nametofont('TkFixedFont')
+        if platform.system() == 'Windows':
+            APPEARANCES['text']['font'] = Font(family='Consolas', size=10)
+
         self._game_frame = Frame(self._root)
         self._game_frame.pack()
 
@@ -100,7 +119,7 @@ class App:
         cols = self._difficulty.cols
         for row in range(rows):
             for col in range(cols):
-                element = Button(self._game_frame, text=' ', height=1, width=2, borderwidth=1)
+                element = Button(self._game_frame, **APPEARANCES['text'], **APPEARANCES['default'])
                 element.bind(LEFT_CLICK, partial(self._reveal, row, col))
                 element.bind(RIGHT_CLICK, partial(self._toggleFlag, row, col))
                 element.grid(row=row, column=col)
@@ -129,14 +148,14 @@ class App:
     def _revealBombs(self):
         for row, col in self._minesweeper.bombs:
             bomb_btn = self._game_frame.grid_slaves(row=row, column=col)[0]
-            bomb_btn.configure(**BUTTON_APPEARANCES['bomb'])
+            bomb_btn.configure(**APPEARANCES['image'], **APPEARANCES['bomb'])
 
     def _reveal(self, row: int, col: int, _: Event) -> None:
         changed_tiles = self._minesweeper.reveal(row, col)
         for tile in changed_tiles:
             btn = self._game_frame.grid_slaves(row=tile.row, column=tile.col)[0]
             text = str(tile.bombsInNeighbor) if tile.bombsInNeighbor else ' '
-            btn.configure(text=text, **BUTTON_APPEARANCES['revealed'])
+            btn.configure(text=text, **APPEARANCES['text'], **APPEARANCES['reveald'])
 
         if self._minesweeper.state == State.LOSE:
             self._revealBombs()
@@ -145,11 +164,11 @@ class App:
     def _toggleFlag(self, row: int, col: int, event: Event) -> None:
         btn = event.widget
         try:
-            btn.configure(
-                **BUTTON_APPEARANCES[
-                    'flagged' if self._minesweeper.toggleFlag(row, col) else 'default'
-                ]
-            )
+            is_flagged = self._minesweeper.toggleFlag(row, col)
+            if is_flagged:
+                btn.configure(**APPEARANCES['image'], **APPEARANCES['flagged'])
+            else:
+                btn.configure(**APPEARANCES['text'], **APPEARANCES['default'])
             if self._minesweeper.state == State.WIN:
                 self._onWin()
         except ValueError:  # Will occure if already revealed tile is getting flagged
