@@ -1,6 +1,6 @@
 import platform
 from functools import partial
-from tkinter import LEFT, RAISED, DISABLED, RIGHT, SUNKEN, TOP, X, YES, Entry, Label, Toplevel
+from tkinter import LEFT, RAISED, DISABLED, RIGHT, SUNKEN, TOP, X, YES, Entry, Event, Label, Toplevel
 from tkinter import Button, Frame, Menu, Tk, messagebox
 from typing import Callable, NoReturn
 
@@ -16,50 +16,6 @@ BUTTON_APPEARANCES = {
     'flagged': { 'text': 'F', 'fg': '#9B59B6' },
     'bomb': { 'text': 'B', 'disabledforeground': '#E74C3C', 'state': DISABLED, 'relief': SUNKEN }
 }
-
-class GameManager:
-    def __init__(self, on_win: Callable[[], None], on_lose: Callable[[], None]):
-        self._difficulty: Difficulty = EASY
-        self._minesweeper: Minesweeper = None
-        self._onWin: Callable[[], None] = on_win
-        self._onLose: Callable[[], None] = on_lose
-
-    def _revealAllBombs(self, frame: Frame) -> None:
-        for brow, bcol in self._minesweeper.bombs:
-            bomb_btn = frame.grid_slaves(row=brow, column=bcol)[0]
-            bomb_btn.configure(**BUTTON_APPEARANCES['bomb'])
-
-    def reveal(self, btn: Button, row: int, col: int, *args) -> None:
-        changed_tiles = self._minesweeper.reveal(row, col)
-
-        frame = btn._nametowidget(btn.winfo_parent())
-        for tile in changed_tiles:
-            tbtn = frame.grid_slaves(row=tile.row, column=tile.col)[0]
-            text = str(tile.bombsInNeighbor) if tile.bombsInNeighbor else ' '
-            tbtn.configure(text=text, **BUTTON_APPEARANCES['revealed'])
-
-        if self._minesweeper.state == State.LOSE:
-            self._revealAllBombs(frame)
-            self._onLose()
-
-    def toggleFlag(self, btn: Button, row: int, col: int, *args) -> None:
-        try:
-            btn.configure(
-                **BUTTON_APPEARANCES[
-                    'flagged' if self._minesweeper.toggleFlag(row, col) else 'default'
-                ]
-            )
-            if self._minesweeper.state == State.WIN:
-                self._onWin()
-        except ValueError:
-            # We can ignore if user tries to click on disabled element (for now)
-            pass
-
-    def newGame(self) -> None:
-        self._minesweeper = Minesweeper(self._difficulty)
-
-    def setDifficulty(self, difficulty: Difficulty) -> None:
-        self._difficulty = difficulty
 
 
 class CustomDifficultyDialog(Toplevel):
@@ -86,7 +42,8 @@ class CustomDifficultyDialog(Toplevel):
             rows = int(self._rows.get())
             cols = int(self._cols.get())
             bombs = int(self._bombs.get())
-        except ValueError: messagebox.showerror('Invalid type!', 'At least one of the entries contains invalid data type.'); return
+        except ValueError:
+            messagebox.showerror('Invalid type!', 'At least one of the entries contains invalid data type.'); return
         if rows == 0 or cols == 0 or bombs == 0: messagebox.showerror('Invalid value!', 'At least one of the entries conains invalid value.'); return
         if rows * cols <= bombs: messagebox.showerror('Invalid value!', 'Number of bombs is too high for provided grid size.'); return
 
@@ -96,11 +53,12 @@ class CustomDifficultyDialog(Toplevel):
 
 class App:
     def __init__(self) -> None:
+        self._difficulty: Difficulty = EASY
+        self._minesweeper: Minesweeper = None
+
         self._root = Tk()
         self._root.title('Minesweeper')
         self._root.resizable(False, False)
-
-        self._game_manager = GameManager(self._onWin, self._onLose)
 
         self._game_frame = Frame(self._root)
         self._game_frame.pack()
@@ -124,13 +82,13 @@ class App:
         self._root.config(menu=self._menu)
 
     def _setup(self) -> None:
-        rows = self._game_manager._difficulty.rows
-        cols = self._game_manager._difficulty.cols
+        rows = self._difficulty.rows
+        cols = self._difficulty.cols
         for row in range(rows):
             for col in range(cols):
                 element = Button(self._game_frame, text=' ', height=1, width=2, borderwidth=1)
-                element.bind(LEFT_CLICK, partial(self._game_manager.reveal, element, row, col))
-                element.bind(RIGHT_CLICK, partial(self._game_manager.toggleFlag, element, row, col))
+                element.bind(LEFT_CLICK, partial(self._reveal, row, col))
+                element.bind(RIGHT_CLICK, partial(self._toggleFlag, row, col))
                 element.grid(row=row, column=col)
 
     def _cleanGameFrame(self) -> None:
@@ -139,11 +97,11 @@ class App:
 
     def _newGame(self):
         self._cleanGameFrame()
-        self._game_manager.newGame()
+        self._minesweeper = Minesweeper(self._difficulty)
         self._setup()
 
     def _setDifficulty(self, difficulty: Difficulty) -> None:
-        self._game_manager.setDifficulty(difficulty)
+        self._difficulty = difficulty
         self._newGame()
 
     def _onLose(self) -> None:
@@ -153,6 +111,35 @@ class App:
     def _onWin(self) -> None:
         if messagebox.showinfo('', 'You won!'):
             self._newGame()
+
+    def _revealBombs(self):
+        for row, col in self._minesweeper.bombs:
+            bomb_btn = self._game_frame.grid_slaves(row=row, column=col)[0]
+            bomb_btn.configure(**BUTTON_APPEARANCES['bomb'])
+
+    def _reveal(self, row: int, col: int, _: Event) -> None:
+        changed_tiles = self._minesweeper.reveal(row, col)
+        for tile in changed_tiles:
+            btn = self._game_frame.grid_slaves(row=tile.row, column=tile.col)[0]
+            text = str(tile.bombsInNeighbor) if tile.bombsInNeighbor else ' '
+            btn.configure(text=text, **BUTTON_APPEARANCES['revealed'])
+
+        if self._minesweeper.state == State.LOSE:
+            self._revealBombs()
+            self._onLose()
+
+    def _toggleFlag(self, row: int, col: int, event: Event) -> None:
+        btn = event.widget
+        try:
+            btn.configure(
+                **BUTTON_APPEARANCES[
+                    'flagged' if self._minesweeper.toggleFlag(row, col) else 'default'
+                ]
+            )
+            if self._minesweeper.state == State.WIN:
+                self._onWin()
+        except ValueError: # Will occure if already revealed tile is getting flagged
+            pass
 
     def run(self) -> NoReturn:
         self._newGame()
