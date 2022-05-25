@@ -1,3 +1,4 @@
+import sys
 import time
 import platform
 from functools import partial
@@ -6,10 +7,13 @@ from tkinter import (
     Button, Frame, Menu, Tk, messagebox
 )
 from tkinter.font import Font, nametofont
+from os.path import dirname, realpath, join as pjoin
 from typing import Callable, NoReturn
 
 from difficulty import Difficulty, EASY, MEDIUM, HARD
 from logic import Minesweeper, State
+
+BASE_PATH = dirname(realpath(sys.argv[0]))
 
 LEFT_CLICK = '<Button-1>'
 RIGHT_CLICK = '<Button-3>' if not platform.system() == 'Darwin' else '<Button-2>'
@@ -89,8 +93,8 @@ class App:
         # NOTE: It appears that wile font other than Consolas is in use, the size-changing
         #       effect appears after replacing text with image and vice-versa. Allegedly
         #       there is no easy way to remove this.
-        APPEARANCES['flagged']['image'] = PhotoImage(name='flag', file='./img/flag.png')
-        APPEARANCES['bomb']['image'] = PhotoImage(name='bomb', file='./img/bomb.png')
+        APPEARANCES['flagged']['image'] = PhotoImage(name='flag', file=pjoin(BASE_PATH, 'img/flag.png'))
+        APPEARANCES['bomb']['image'] = PhotoImage(name='bomb', file=pjoin(BASE_PATH, 'img/bomb.png'))
         APPEARANCES['text']['font'] = nametofont('TkFixedFont')
         if platform.system() == 'Windows':
             APPEARANCES['text']['font'] = Font(family='Consolas', size=10)
