@@ -1,6 +1,7 @@
 import sys
 import time
 import platform
+import traceback
 from functools import partial
 from tkinter import (
     Entry, Event, Label, PhotoImage, Toplevel,
@@ -89,6 +90,7 @@ class App:
         self._root = Tk()
         self._root.title('Minesweeper')
         self._root.resizable(False, False)
+        self._root.report_callback_exception = self._onError
 
         # NOTE: It appears that wile font other than Consolas is in use, the size-changing
         #       effect appears after replacing text with image and vice-versa. Allegedly
@@ -129,6 +131,13 @@ class App:
                 element.bind(LEFT_CLICK, partial(self._reveal, row, col))
                 element.bind(RIGHT_CLICK, partial(self._toggleFlag, row, col))
                 element.grid(row=row, column=col)
+
+    def _onError(self, exctype, excvalue, tb):
+        messagebox.showerror(
+            'Error',
+            ''.join(traceback.format_exception(exctype, excvalue, tb))
+        )
+        self._root.destroy()
 
     def _cleanGameFrame(self) -> None:
         for widget in self._game_frame.winfo_children():
