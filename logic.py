@@ -86,7 +86,7 @@ class Minesweeper:
                 grid[nrow][ncol].bombsInNeighbor += 1
         return grid
 
-    def _checkIfAllBombsAreFlagged(self) -> bool:
+    def _allBombsFlagged(self) -> bool:
         return all((self._grid[trow][tcol].isFlagged for trow, tcol in self._bombs))
 
     def toggleFlag(self, row: int, col: int) -> bool:
@@ -102,7 +102,7 @@ class Minesweeper:
         if tile.isFlagged:
             if (
                 self._flags == self._difficulty.bombs
-                and self._checkIfAllBombsAreFlagged()
+                and self._allBombsFlagged()
             ):
                 self._state = State.WIN
         return tile.isFlagged
