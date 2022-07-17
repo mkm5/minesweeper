@@ -34,6 +34,7 @@ APPEARANCES: Dict[str, Any] = {
     'bomb': { 'image': None, 'bg': '#E74C3C' }
 }
 
+
 class CustomDifficultyDialog(Toplevel):
     def __init__(self, change_difficulty: Callable[[Difficulty], None], *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -45,7 +46,13 @@ class CustomDifficultyDialog(Toplevel):
         self._entries = {}
         for entry_name in ('rows', 'cols', 'bombs'):
             frame = Frame(self)
-            Label(frame, text=f'{entry_name.title()}:', width=10, anchor='w', justify='left').pack(side='left')
+            Label(
+                frame,
+                text=f'{entry_name.title()}:',
+                width=10,
+                anchor='w',
+                justify='left'
+            ).pack(side='left')
             entry = Entry(frame)
             entry.pack(side='right', expand=1, fill='x')
             self._entries[entry_name] = entry
@@ -135,8 +142,7 @@ class App:
 
     def _onError(self, exctype, excvalue, tb):
         messagebox.showerror(
-            'Error',
-            ''.join(traceback.format_exception(exctype, excvalue, tb))
+            'Error', ''.join(traceback.format_exception(exctype, excvalue, tb))
         )
         self._root.destroy()
 
@@ -176,7 +182,7 @@ class App:
         for tile in changed_tiles:
             btn = self._game_frame.grid_slaves(row=tile.row, column=tile.col)[0]
             text = str(tile.bombsInNeighbor) if tile.bombsInNeighbor else ' '
-            btn.configure(text=text, **APPEARANCES['text'], **APPEARANCES['reveald']) # type: ignore
+            btn.configure(text=text, **APPEARANCES['text'], **APPEARANCES['reveald'])  # type: ignore
 
         if self._minesweeper.state == State.LOSE:
             self._revealBombs()

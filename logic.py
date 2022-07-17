@@ -41,23 +41,6 @@ class Minesweeper:
     def bombs(self) -> Set[Tuple[int, int]]:
         return self._bombs
 
-    # NOTE: only for testing purpose
-    def __str__(self) -> str:
-        out = f'Minesweeper {self._difficulty.name}\n'
-        out += f'rows={self._difficulty.rows} cols={self._difficulty.cols} bombs={self._difficulty.bombs}\n'
-        out += str(self._bombs) + '\n'
-        for row in self._grid:
-            for tile in row:
-                if tile.isBomb and not tile.isFlagged: out += 'B'
-                elif not tile.isBomb and tile.isFlagged: out += 'F'
-                elif tile.isBomb and tile.isFlagged: out += 'X'
-                else:
-                    if tile.bombsInNeighbor > 0: out += f'{tile.bombsInNeighbor}'
-                    else: out += '_'
-                out += ' '
-            out += '\n'
-        return out
-
     def _generateBombs(self) -> Set[Tuple[int, int]]:
         rows, cols = self._difficulty.rows, self._difficulty.cols
         nbombs = self._difficulty.bombs
@@ -100,10 +83,7 @@ class Minesweeper:
         tile.isFlagged = not tile.isFlagged
         self._flags += 1 if tile.isFlagged else -1
         if tile.isFlagged:
-            if (
-                self._flags == self._difficulty.bombs
-                and self._allBombsFlagged()
-            ):
+            if self._flags == self._difficulty.bombs and self._allBombsFlagged():
                 self._state = State.WIN
         return tile.isFlagged
 
