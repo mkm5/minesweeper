@@ -9,7 +9,7 @@ from tkinter import (
 )
 from tkinter.font import Font, nametofont
 from os.path import dirname, realpath, join as pjoin
-from typing import Callable, Optional
+from typing import Callable, Any, Dict
 
 from difficulty import Difficulty, EASY, MEDIUM, HARD
 from logic import Minesweeper, State
@@ -19,7 +19,7 @@ BASE_PATH = dirname(realpath(sys.argv[0]))
 LEFT_CLICK = '<Button-1>'
 RIGHT_CLICK = '<Button-3>' if not platform.system() == 'Darwin' else '<Button-2>'
 
-APPEARANCES = {
+APPEARANCES: Dict[str, Any] = {
     'text': {
         'image': '',
         'font': None,
@@ -85,8 +85,8 @@ class CustomDifficultyDialog(Toplevel):
 class App:
     def __init__(self) -> None:
         self._difficulty: Difficulty = EASY
-        self._minesweeper: Optional[Minesweeper] = None
-        self._timer: Optional[float] = None
+        self._minesweeper: Minesweeper
+        self._timer: float = 0.0
 
         self._root = Tk()
         self._root.title('Minesweeper')
@@ -147,7 +147,7 @@ class App:
     def _newGame(self):
         self._cleanGameFrame()
         self._minesweeper = Minesweeper(self._difficulty)
-        self._timer = None
+        self._timer = 0.0
         self._setup()
 
     def _setDifficulty(self, difficulty: Difficulty) -> None:
@@ -176,7 +176,7 @@ class App:
         for tile in changed_tiles:
             btn = self._game_frame.grid_slaves(row=tile.row, column=tile.col)[0]
             text = str(tile.bombsInNeighbor) if tile.bombsInNeighbor else ' '
-            btn.configure(text=text, **APPEARANCES['text'], **APPEARANCES['reveald'])
+            btn.configure(text=text, **APPEARANCES['text'], **APPEARANCES['reveald']) # type: ignore
 
         if self._minesweeper.state == State.LOSE:
             self._revealBombs()
