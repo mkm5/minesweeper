@@ -9,7 +9,7 @@ from tkinter import (
 )
 from tkinter.font import Font, nametofont
 from os.path import dirname, realpath, join as pjoin
-from typing import Callable, NoReturn
+from typing import Callable, Optional
 
 from difficulty import Difficulty, EASY, MEDIUM, HARD
 from logic import Minesweeper, State
@@ -42,12 +42,13 @@ class CustomDifficultyDialog(Toplevel):
         self.title('Custom Difficulty Dialog')
         self.resizable(False, False)
 
-        self._entries = {'rows': None, 'cols': None, 'bombs': None}
-        for entry in self._entries.keys():
+        self._entries = {}
+        for entry_name in ('rows', 'cols', 'bombs'):
             frame = Frame(self)
-            Label(frame, text=f'{entry.title()}:', width=10, anchor='w', justify='left').pack(side='left')
-            self._entries[entry] = Entry(frame)
-            self._entries[entry].pack(side='right', expand=1, fill='x')
+            Label(frame, text=f'{entry_name.title()}:', width=10, anchor='w', justify='left').pack(side='left')
+            entry = Entry(frame)
+            entry.pack(side='right', expand=1, fill='x')
+            self._entries[entry_name] = entry
             frame.pack(side='top', expand=1, fill='x')
 
         confirm_btn = Button(self, text='Confirm', command=self._onConfirm)
@@ -84,8 +85,8 @@ class CustomDifficultyDialog(Toplevel):
 class App:
     def __init__(self) -> None:
         self._difficulty: Difficulty = EASY
-        self._minesweeper: Minesweeper = None
-        self._timer: float = None
+        self._minesweeper: Optional[Minesweeper] = None
+        self._timer: Optional[float] = None
 
         self._root = Tk()
         self._root.title('Minesweeper')
@@ -194,7 +195,7 @@ class App:
         except ValueError:  # Will occure if already revealed tile is getting flagged
             pass
 
-    def run(self) -> NoReturn:
+    def run(self) -> None:
         self._newGame()
         self._root.mainloop()
 
